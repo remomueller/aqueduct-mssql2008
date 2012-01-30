@@ -1,5 +1,5 @@
 require 'aqueduct'
-require 'dbi'
+# require 'dbi'
 
 module Aqueduct
   module Wrappers
