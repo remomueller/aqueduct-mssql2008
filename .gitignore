@@ -1,0 +1,19 @@
+# .gitignore lists files and file patterns that are to be ignored by GIT
+
+# Ignore compiled gems
+*.gem
+
+# OS generated files #
+.DS_Store
+
+# Ignore SimpleCov output
+coverage/*
+
+.bundle/
+Gemfile.lock
+log/*.log
+pkg/
+test/dummy/db/*.sqlite3
+test/dummy/log/*.log
+test/dummy/tmp/
+test/dummy/.sass-cache
