@@ -1,0 +1,17 @@
+= Aqueduct Wrapper - Microsoft SQL 2008 {<img src="https://secure.travis-ci.org/remomueller/aqueduct-mssql2008.png"/>}[http://travis-ci.org/remomueller/aqueduct-mssql2008] {<img src="https://gemnasium.com/remomueller/aqueduct-mssql2008.png" alt="Dependency Status" />}[https://gemnasium.com/remomueller/aqueduct-mssql2008]
+
+Connects to Microsoft SQL 2008 database using Aqueduct interface
+
+== Installation
+
+Aqueduct Wrapper - Microsoft 2008 can be installed from rubygems.org using:
+
+  gem install aqueduct-mssql2008
+
+Or update your Gemfile to include:
+
+  gem 'aqueduct-mssql2008'
+
+== Copyright
+
+Copyright (c) 2012 Remo Mueller. See {LICENSE}[https://github.com/remomueller/aqueduct-mssql2008/blob/master/LICENSE] for further details.
