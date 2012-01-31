@@ -12,6 +12,220 @@ Or update your Gemfile to include:
 
   gem 'aqueduct-mssql2008'
 
+== Full Installation
+
+This document is intended to explain how the MSSQL gem(s) can be compiled in different environments
+NOTE: Not simple...and given that it is 2012 and there's no official support from Ruby, or Rails to connect with MS SQL, good luck... Using the compile information below it is possible to connect to MS SQL from CentOS, RedHat, and Mac OSX (that I've tested). However if the below doesn't work for you, I'd recommend creating a nightly dump of your MS SQL database to a MySQL database, and use {aqueduct-mysql}[https://github.com/remomueller/aqueduct-mysql] instead.
+
+Based on: {Howto Connect To Microsoft SQL Server From Rails On Linux}[http://oldwiki.rubyonrails.org/rails/pages/HowtoConnectToMicrosoftSQLServerFromRailsOnLinux]
+
+
+01) Edit Profile
+
+  sudo vi /etc/profile
+
+Add the following lines
+
+  export ODBCINI=/usr/local/etc/odbc.ini
+  export ODBCSYSINI=/usr/local/etc
+  export FREETDSCONF=/usr/local/etc/freetds.conf
+
+02) Install ODBC
+
+  cd <my_source_directory>
+  wget ftp://ftp.unixodbc.org/pub/unixODBC/unixODBC-2.3.0.tar.gz
+  gunzip unixODBC*.tar.gz
+  tar xvf unixODBC*.tar
+  rm unixODBC*.tar
+  cd unixODBC*/
+
+  env ARCHFLAGS="-arch x86_64" ./configure --prefix=/usr/local/unixODBC-2.3.0 --enable-gui=no
+
+  make
+  sudo make install
+
+03) Install FreeTDS
+
+Ubuntu has the pre-requisite of
+
+  sudo apt-get install unixodbc unixodbc-dev
+
+Important! Use FreeTDS 0.82, as 0.91 doesn't appear to work with Ruby DBD ODBC
+
+  cd <my_source_directory>
+  wget http://www.ibiblio.org/pub/Linux/ALPHA/freetds/old/0.82/freetds-0.82.tar.gz
+  tar zvxf freetds-0.82.tar.gz
+  rm freetds-0.82.tar.gz
+  cd freetds-0.82/
+
+  env ARCHFLAGS="-arch x86_64" ./configure --prefix=/usr/local --with-unixodbc=/usr/local/unixODBC-2.3.0/ --with-tdsver=7.0 --enable-shared=yes --enable-msdblib
+
+UNIX (preferred)
+
+ ./configure --with-unixodbc=/PATH/TO/FOLDER/
+
+Red Hat Linux & Ubuntu (see note* for Ubuntu see pre-requisite above.)
+
+  ./configure --with-odbc=/PATH/TO/FOLDER/
+
+Compile
+
+  make
+  sudo make install
+
+
+*NOTE: (RHEL4 – possibly others) You need to have unixODBC-devel (up2date unixODBC-devel) installed in order to use --with-unixodbc. Otherwise libtdsodbc.so will be missing, the above “Red Hat Edit Line 4” did not work for me (it built, but no libtdsodbc.so)
+
+Bind the ruby-odbc gem to the unixODBC install
+
+  gem uninstall ruby-odbc
+
+  env ARCHFLAGS="-arch x86_64" gem install ruby-odbc -- --with-odbc-dir=/usr/local/unixODBC-2.3.0/
+
+
+04) Edit freetds.conf
+
+  sudo vi /usr/local/etc/freetds.conf
+
+Add the following lines
+
+  [YOUR_DB_DEFINITION_NAME]
+    host = 192.168.1.101  (change this to the right one for you)
+    port = 1433
+    tds version = 8.0   #(might be different, check "here":http://www.freetds.org/userguide/choosingtdsprotocol.htm.)
+                        #8.0 is the minimum for some important features of SQL server
+
+
+05) Test
+
+  tsql -S YOUR_DB_DEFINITION_NAME -U USERNAME -P PASSWORD
+  sqsh -S YOUR_DB_DEFINITION_NAME -U USERNAME -P PASSWORD
+
+
+  isql YOUR_DB_DEFINITION_NAME USERNAME PASSWORD
+
+  sudo vi /etc/odbcinst.ini
+
+  find /usr -name "libtds*.*"
+
+To verify the location of files configured below. Ubuntu locations are /usr/local/lib/libtdsodbc.so and /usr/lib/odbc/libtdsS.so
+
+  [FreeTDS]
+  Description = TDS Driver
+  Driver = /usr/local/lib/libtdsodbc.so
+  Setup = /usr/local/lib/libtdsS.so
+  CPTimeout =
+  CPReuse =
+  FileUsage = 1
+
+Edit /etc/odbc.ini
+
+  [YOUR_DB_DEFINITION_NAME]
+  Driver=FreeTDS
+  Servername=YOUR_DB_DEFINITION_NAME
+  Database=YOUR_DB
+
+Edit /usr/local/etc/freetds.conf
+
+  #   $Id: freetds.conf,v 1.12 2007/12/25 06:02:36 jklowden Exp $
+  #
+  # This file is installed by FreeTDS if no file by the same
+  # name is found in the installation directory.
+  #
+  # For information about the layout of this file and its settings,
+  # see the freetds.conf manpage "man freetds.conf".
+
+  # Global settings are overridden by those in a database
+  # server specific section
+  [global]
+          # TDS protocol version
+  ; tds version = 4.2
+
+    # Whether to write a TDSDUMP file for diagnostic purposes
+    # (setting this to /tmp is insecure on a multi-user system)
+  ; dump file = /tmp/freetds.log
+  ; debug flags = 0xffff
+
+    # Command and connection timeouts
+  ; timeout = 10
+  ; connect timeout = 10
+
+    # If you get out-of-memory errors, it may mean that your client
+    # is trying to allocate a huge buffer for a TEXT field.
+    # Try setting 'text size' to a more reasonable limit
+    text size = 64512
+
+  # A typical Sybase server
+  [egServer50]
+    host = symachine.domain.com
+    port = 5000
+    tds version = 5.0
+
+  # A typical Microsoft server
+  [egServer70]
+    host = ntmachine.domain.com
+    port = 1433
+    tds version = 7.0
+
+  [YOUR_DB_DEFINITION_NAME]
+    host = 192.168.1.101  (change this to the right one for you)
+    port = 1433
+    tds version = 8.0  #(might be different, check "here":http://www.freetds.org/userguide/choosingtdsprotocol.htm.)
+                       #8.0 is the minimum for some important features of SQL server
+
+
+06) Install ODBC DEVEL and Ruby ODBC
+
+  cd <my_source_directory>
+  gem install ruby-odbc
+  gem install activerecord-odbc-adapter
+  gem install dbd-odbc
+
+  irb -rubygems
+  require 'dbi'
+  dbh = DBI.connect('DBI:ODBC:YOUR_DB_DEFINITION_NAME', 'USERNAME', 'PASSWORD')
+  dbh.select_all('select * from TABLE_NAME');
+
+
+############ IMPORTANT!!!!
+Two items to make solution work!
+
+One! Must uninstall ruby-odbc if it was installed using bundle update.
+Rerun ruby-odbc install using command below to set proper arch flags and unixODBC directory!
+
+Make sure any "columninfo.rb" file has its @hash.each_key do |x| line replaced!
+
+
+07) Additional notes in case the above fails
+
+unixODBC
+
+  env ARCHFLAGS="-arch x86_64" ./configure --prefix=/usr/local/unixODBC-2.3.0 --enable-gui=no
+
+freetds
+
+  env ARCHFLAGS="-arch x86_64" ./configure --prefix=/usr/local --with-unixodbc=/usr/local/unixODBC-2.3.0/ --with-tdsver=7.0 --enable-shared=yes --enable-msdblib
+
+  env ARCHFLAGS="-arch x86_64" gem install ruby-odbc -- --with-odbc-dir=/usr/local/unixODBC-2.3.0/
+
+Additional DBI fix that's required
+
+  sudo find / -name "columninfo.rb"
+
+Edit the lines that say:
+
+  # coerce all strings to symbols
+  @hash.each_key do |x|
+
+To
+
+  # coerce all strings to symbols
+  keys = @hash.keys
+  keys.each do |x|
+  # @hash.each_key do |x|
+
+And restart apache
+
 == Copyright
 
 Copyright (c) 2012 Remo Mueller. See {LICENSE}[https://github.com/remomueller/aqueduct-mssql2008/blob/master/LICENSE] for further details.
