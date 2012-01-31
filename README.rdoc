@@ -14,8 +14,9 @@ Or update your Gemfile to include:
 
 == Full Installation
 
-This document is intended to explain how the MSSQL gem(s) can be compiled in different environments
-NOTE: Not simple...and given that it is 2012 and there's no official support from Ruby, or Rails to connect with MS SQL, good luck... Using the compile information below it is possible to connect to MS SQL from CentOS, RedHat, and Mac OSX (that I've tested). However if the below doesn't work for you, I'd recommend creating a nightly dump of your MS SQL database to a MySQL database, and use {aqueduct-mysql}[https://github.com/remomueller/aqueduct-mysql] instead.
+This document is intended to explain how the MSSQL gem(s) can be compiled in different environments.
+
+NOTE: Not simple...and given that it is 2012 and there's no official support from Ruby, or Rails to connect with MS SQL, good luck... Using the compiled information below it is possible to connect to MS SQL from CentOS, RedHat, and Mac OSX (that I've tested). However if the below doesn't work for you, I'd recommend creating a nightly dump of your MS SQL database to a MySQL database, and use {aqueduct-mysql}[https://github.com/remomueller/aqueduct-mysql] instead.
 
 Based on: {Howto Connect To Microsoft SQL Server From Rails On Linux}[http://oldwiki.rubyonrails.org/rails/pages/HowtoConnectToMicrosoftSQLServerFromRailsOnLinux]
 
@@ -187,13 +188,12 @@ Edit /usr/local/etc/freetds.conf
   dbh.select_all('select * from TABLE_NAME');
 
 
-############ IMPORTANT!!!!
-Two items to make solution work!
+IMPORTANT: Two items to make solution work!
 
-One! Must uninstall ruby-odbc if it was installed using bundle update.
+* One! Must uninstall ruby-odbc if it was installed using bundle update.
 Rerun ruby-odbc install using command below to set proper arch flags and unixODBC directory!
 
-Make sure any "columninfo.rb" file has its @hash.each_key do |x| line replaced!
+* Make sure any "columninfo.rb" file has its <tt>@hash.each_key do |x|</tt> line replaced!
 
 
 07) Additional notes in case the above fails

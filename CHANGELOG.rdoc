@@ -1,5 +1,8 @@
 == 0.1.0
 
+* Enhancements
+  * Connects to Microsoft SQL 2008 through Aqueduct interface
+
 == 0.0.0
 
 * Skeleton files to compile gem and make it available on rubygems.org
